@@ -10,7 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.6
+  google_fonts: ^6.2.1
   http: ^1.2.2
+  liquid_pull_to_refresh: ^3.0.1
 
 dev_dependencies:
   flutter_test:
