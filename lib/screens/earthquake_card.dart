@@ -1,3 +1,4 @@
+import 'package:earthquake_map/screens/earthquake_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:earthquake_map/constants/appcolors.dart' as appcolors;
 
@@ -30,20 +31,27 @@ class _EarthquakeCardState extends State<EarthquakeCard> {
       itemCount: widget.earthquake.length,
       itemBuilder: (context, index) {
         final earthquake = widget.earthquake[index]["properties"];
-        return Card(
-          color: appcolors.background,
-          child: ListTile(
-            title: Row(
-              children: [
-                Text(earthquake['place']),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Magnitude: ${earthquake['mag']}'),
-                Text(getTimeDifference(earthquake['time'])),
-              ],
+        final earthquakelocation = widget.earthquake[index]["geometry"];
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => EarthquakeDetail(earthquake: earthquakelocation, eqproperty: earthquake)));
+          },
+          child: Card(
+            color: appcolors.background,
+            child: ListTile(
+              title: Row(
+                children: [
+                  Text(earthquake['place']),
+                ],
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Magnitude: ${earthquake['mag']}'),
+                  Text(getTimeDifference(earthquake['time'])),
+                ],
+              ),
             ),
           ),
         );

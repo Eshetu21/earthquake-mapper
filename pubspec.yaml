@@ -11,8 +11,11 @@ dependencies:
     sdk: flutter
   get: ^4.6.6
   google_fonts: ^6.2.1
+  google_maps_flutter: ^2.9.0
   http: ^1.2.2
   liquid_pull_to_refresh: ^3.0.1
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

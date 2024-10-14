@@ -94,35 +94,48 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder<List>(
-              future: fetchEarthQuakes(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                        color: Colors.grey, strokeWidth: 1),
-                  );
-                } else if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Error fetching data"),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text("No data available"),
-                  );
-                } else {
-                  List earthquakes = snapshot.data!;
-                  return LiquidPullToRefresh(
-                      onRefresh: _refresh,
-                      child: EarthquakeCard(earthquake: earthquakes));
-                }
-              },
-            ),
-          ),
-        ],
+      body: LiquidPullToRefresh(
+        onRefresh: _refresh,
+        child: FutureBuilder<List>(
+          future: fetchEarthQuakes(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                    color: Colors.grey, strokeWidth: 1),
+              );
+            } else if (snapshot.hasError) {
+              return const Center(
+                child: Text("Error fetching data"),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text("No data available"),
+              );
+            } else {
+              List earthquakes = snapshot.data!;
+              return Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(earthquakes.length.toString(),
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.08)),
+                        Text("Earthquakes $selectedFilter")
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(child: EarthquakeCard(earthquake: earthquakes)),
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }
