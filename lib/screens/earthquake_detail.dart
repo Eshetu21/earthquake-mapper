@@ -21,8 +21,8 @@ class _EarthquakeDetailState extends State<EarthquakeDetail> {
   @override
   void initState() {
     super.initState();
-    
   }
+
   String getTimeDifference(int timestamp) {
     final DateTime earthquakeTime =
         DateTime.fromMillisecondsSinceEpoch(timestamp);
@@ -61,6 +61,7 @@ class _EarthquakeDetailState extends State<EarthquakeDetail> {
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.45,
             child: GoogleMap(
+              key: UniqueKey(),
               initialCameraPosition: CameraPosition(
                 target: LatLng(
                   widget.earthquake["coordinates"][1],
@@ -91,23 +92,21 @@ class _EarthquakeDetailState extends State<EarthquakeDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow("📍 Location:",
-                        widget.eqproperty["place"] ?? "Null"),
+                    _buildDetailRow(
+                        "📍 Location:", widget.eqproperty["place"] ?? "Null"),
                     _buildDetailRow("🌍 Magnitude:",
                         widget.eqproperty["mag"]?.toString() ?? "Null"),
                     _buildDetailRow("🌊 Depth:",
                         "${widget.earthquake["coordinates"][2]} KM"),
-                    _buildDetailRow(
-                        "👥 People Reported:",
-                        widget.eqproperty["felt"]?.toString() ??
-                            "Null"),
+                    _buildDetailRow("👥 People Reported:",
+                        widget.eqproperty["felt"]?.toString() ?? "Null"),
                     _buildDetailRow("🕒 Last Updated:",
                         getTimeDifference(widget.eqproperty["updated"])),
                     TextButton(
                         onPressed: () {
                           _launchUrl(widget.eqproperty["url"]);
                         },
-                        child: Text("More Details"))
+                        child: const Text("More Details"))
                   ],
                 ),
               ),

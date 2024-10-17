@@ -2,6 +2,8 @@ import 'package:earthquake_map/controllers/earthquake_controller.dart';
 import 'package:earthquake_map/screens/earthquake_card.dart';
 import 'package:flutter/material.dart';
 import 'package:earthquake_map/constants/appcolors.dart' as appcolors;
+import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 class Homepage extends StatefulWidget {
@@ -12,13 +14,31 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  final EarthQuake _earthQuake = Get.put(EarthQuake());
   String selectedFilter = "Today";
   DateTime? startDate;
   DateTime? endDate;
+  Position? userLocation;
+  @override
+  void initState() {
+    super.initState();
+    getUserLocation();
+  }
+
+  Future getUserLocation() async {
+    try {
+      await EarthQuake().getUserLocation();
+      setState(() {
+        userLocation = _earthQuake.userLocation;
+      });
+    } catch ($e) {
+      print($e.toString());
+    }
+  }
 
   Future<List> fetchEarthQuakes() async {
     try {
-      return await EarthQuake().fetchEarthQuakes(
+      return await _earthQuake.fetchEarthQuakes(
         filter: selectedFilter,
         startDate: startDate,
         endDate: endDate,
@@ -39,7 +59,7 @@ class _HomepageState extends State<Homepage> {
       setState(() {
         startDate = picked;
         endDate = picked;
-        selectedFilter = "Custom Range";
+        selectedFilter = "Custom";
       });
     }
   }
@@ -56,7 +76,7 @@ class _HomepageState extends State<Homepage> {
         backgroundColor: appcolors.background,
         elevation: 0,
         title: const Text(
-          "Earthquake Mapper",
+          "EQ Map",
           style: TextStyle(fontSize: 20),
         ),
         actions: [
@@ -68,7 +88,7 @@ class _HomepageState extends State<Homepage> {
                 dropdownColor: Colors.white,
                 icon: const Icon(Icons.filter_list,
                     color: Colors.black, size: 20),
-                items: ["Today", "This Week", "This Month", "Custom Range"]
+                items: ["Today", "This Week", "This Month", "Custom"]
                     .map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -79,7 +99,7 @@ class _HomepageState extends State<Homepage> {
                   );
                 }).toList(),
                 onChanged: (newValue) async {
-                  if (newValue == "Custom Range") {
+                  if (newValue == "Custom") {
                     await selectDateRange(context);
                   } else {
                     setState(() {
@@ -114,6 +134,25 @@ class _HomepageState extends State<Homepage> {
               );
             } else {
               List earthquakes = snapshot.data!;
+              var highestMangnitude = earthquakes.reduce((a, b) =>
+                  a["properties"]["mag"] > b["properties"]["mag"] ? a : b);
+              var nearestEarthquake;
+              if (userLocation != null) {
+                nearestEarthquake = earthquakes.reduce((a, b) {
+                  double distanceA = _earthQuake.calculateDistance(
+                      userLocation!.latitude,
+                      userLocation!.longitude,
+                      a["geometry"]["coordinates"][1],
+                      a["geometry"]["coordinates"][0]);
+                  double distanceB = _earthQuake.calculateDistance(
+                      userLocation!.latitude,
+                      userLocation!.longitude,
+                      b["geometry"]["coordinates"][1],
+                      b["geometry"]["coordinates"][0]);
+                  return distanceA < distanceB ? a : b;
+                });
+                print("nearest ${nearestEarthquake["properties"]["mag"]}");
+              }
               return Column(
                 children: [
                   Container(
@@ -129,6 +168,21 @@ class _HomepageState extends State<Homepage> {
                       ],
                     ),
                   ),
+                  const Divider(),
+                  Flex(direction: Axis.horizontal, children: [
+                    Expanded(
+                        child:
+                            Text("${highestMangnitude["properties"]["mag"]}")),
+                    Expanded(
+                      child: Text(
+                        nearestEarthquake != null &&
+                                nearestEarthquake["properties"] != null
+                            ? "${nearestEarthquake["properties"]["mag"]}"
+                            : "Location disabled",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    )
+                  ]),
                   const Divider(),
                   Expanded(child: EarthquakeCard(earthquake: earthquakes)),
                 ],
