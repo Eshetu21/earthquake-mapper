@@ -1,11 +1,13 @@
+import 'package:earthquake_map/controllers/location_controller.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class EarthQuake extends GetxController {
-  RxBool isfetching = false.obs;
-  Position? userLocation;
+import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart' as handler;
+
+class EarthQuake {
   Future<List> fetchEarthQuakes(
       {required String filter, DateTime? startDate, DateTime? endDate}) async {
     String apiUrl;
@@ -51,31 +53,68 @@ class EarthQuake extends GetxController {
       throw Exception("failed to fetch $e");
     }
   }
+}
 
-  Future<void> getUserLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error("Location services are disabled");
+class LocationServices {
+  LocationServices.init();
+  static LocationServices instance = LocationServices.init();
+
+  Location _location = Location();
+
+  Future<bool> checkForServiceAvailability() async {
+    bool isEnabled = await _location.serviceEnabled();
+    if (isEnabled) {
+      return Future.value(true);
     }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error("Location permission is denied");
+    isEnabled = await _location.requestService();
+    if (isEnabled) {
+      return Future.value(true);
+    }
+    return Future.value(false);
+  }
+
+  Future<bool> checkForPermission() async {
+    PermissionStatus status = await _location.hasPermission();
+    if (status == PermissionStatus.denied) {
+      status = await _location.requestPermission();
+      if (status == PermissionStatus.granted) {
+        return true;
       }
+      return false;
     }
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          "Location permission is permanently denied. We cannot request permission");
+    if (status == PermissionStatus.deniedForever) {
+      Get.snackbar("Permission Needed",
+          "We use permission to get your location in order to give you full experience",
+          onTap: (snack) {
+        handler.openAppSettings();
+      }).show();
+      return false;
     }
-    Position position = await Geolocator.getCurrentPosition();
-    userLocation = position;
+    return Future.value(true);
+  }
+
+  Future<void> getUserLocation({required LocationController controller}) async {
+    controller.updateIsAccessingLocation(true);
+    if (!(await checkForServiceAvailability())) {
+      controller.errorDescription.value = "Service not enabled";
+      controller.updateIsAccessingLocation(false);
+      return;
+    }
+    if (!(await checkForPermission())) {
+      controller.errorDescription.value = "Permission denied";
+      controller.updateIsAccessingLocation(false);
+      return;
+    }
+    final LocationData data = await _location.getLocation();
+    controller.updateUserLocation(data);
+    controller.updateIsAccessingLocation(false);
+
+    print(data.latitude);
+    print(data.longitude);
   }
 
   double calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
+      double? lat1, double? lon1, double? lat2, double? lon2) {
+    return Geolocator.distanceBetween(lat1!, lon1!, lat2!, lon2!);
   }
 }

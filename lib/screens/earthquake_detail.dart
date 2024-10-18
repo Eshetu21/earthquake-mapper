@@ -1,5 +1,7 @@
+import 'package:earthquake_map/controllers/location_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:earthquake_map/constants/appcolors.dart' as appcolors;
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,9 +20,23 @@ class EarthquakeDetail extends StatefulWidget {
 }
 
 class _EarthquakeDetailState extends State<EarthquakeDetail> {
+  final LocationController _locationController =
+      Get.put<LocationController>(LocationController());
+  LatLng? userLatLng;
   @override
   void initState() {
     super.initState();
+    setLatLon();
+  }
+
+  Future<void> setLatLon() async {
+    if (_locationController.userLocation.value?.latitude != null &&
+        _locationController.userLocation.value?.longitude != null) {
+      userLatLng = LatLng(
+        _locationController.userLocation.value!.latitude!,
+        _locationController.userLocation.value!.longitude!,
+      );
+    }
   }
 
   String getTimeDifference(int timestamp) {
@@ -77,6 +93,11 @@ class _EarthquakeDetailState extends State<EarthquakeDetail> {
                     widget.earthquake["coordinates"][0],
                   ),
                 ),
+                if (userLatLng != null)
+                  Marker(
+                    markerId: const MarkerId("Your Location"),
+                    position: userLatLng!,
+                  )
               },
             ),
           ),

@@ -1,8 +1,8 @@
-import 'package:earthquake_map/controllers/earthquake_controller.dart';
+import 'package:earthquake_map/controllers/location_controller.dart';
 import 'package:earthquake_map/screens/earthquake_card.dart';
+import 'package:earthquake_map/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:earthquake_map/constants/appcolors.dart' as appcolors;
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
@@ -15,24 +15,31 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   final EarthQuake _earthQuake = Get.put(EarthQuake());
+  final LocationServices _locationServices = Get.put(LocationServices.init());
+  final LocationController _locationController =
+      Get.put<LocationController>(LocationController());
   String selectedFilter = "Today";
   DateTime? startDate;
   DateTime? endDate;
-  Position? userLocation;
+  double? userLat;
+  double? userLon;
+
   @override
   void initState() {
     super.initState();
-    getUserLocation();
+    fetchLocation();
   }
 
-  Future getUserLocation() async {
-    try {
-      await EarthQuake().getUserLocation();
+  Future<void> fetchLocation() async {
+    await LocationServices.instance
+        .getUserLocation(controller: _locationController);
+    if (_locationController.userLocation != null) {
       setState(() {
-        userLocation = _earthQuake.userLocation;
+        userLat = _locationController.userLocation.value?.latitude;
+        userLon = _locationController.userLocation.value?.longitude;
       });
-    } catch ($e) {
-      print($e.toString());
+    } else {
+      Get.snackbar("Failed", "Failed to get location data");
     }
   }
 
@@ -44,7 +51,7 @@ class _HomepageState extends State<Homepage> {
         endDate: endDate,
       );
     } catch (e) {
-      print("Error fetching data: $e");
+      Get.snackbar("Failed", "Error fetching data");
       return [];
     }
   }
@@ -134,25 +141,32 @@ class _HomepageState extends State<Homepage> {
               );
             } else {
               List earthquakes = snapshot.data!;
-              var highestMangnitude = earthquakes.reduce((a, b) =>
-                  a["properties"]["mag"] > b["properties"]["mag"] ? a : b);
+              var highestMagnitude;
+              if (earthquakes.isNotEmpty) {
+                highestMagnitude = earthquakes.reduce((a, b) =>
+                    a["properties"]["mag"] > b["properties"]["mag"] ? a : b);
+              }
+
               var nearestEarthquake;
-              if (userLocation != null) {
+              if (userLat != null &&
+                  userLon != null &&
+                  earthquakes.isNotEmpty) {
                 nearestEarthquake = earthquakes.reduce((a, b) {
-                  double distanceA = _earthQuake.calculateDistance(
-                      userLocation!.latitude,
-                      userLocation!.longitude,
+                  double distanceA = _locationServices.calculateDistance(
+                      userLat,
+                      userLon,
                       a["geometry"]["coordinates"][1],
                       a["geometry"]["coordinates"][0]);
-                  double distanceB = _earthQuake.calculateDistance(
-                      userLocation!.latitude,
-                      userLocation!.longitude,
+                  double distanceB = _locationServices.calculateDistance(
+                      userLat,
+                      userLon,
                       b["geometry"]["coordinates"][1],
                       b["geometry"]["coordinates"][0]);
                   return distanceA < distanceB ? a : b;
                 });
-                print("nearest ${nearestEarthquake["properties"]["mag"]}");
+                print("nearest ${nearestEarthquake["properties"]["place"]}");
               }
+
               return Column(
                 children: [
                   Container(
@@ -169,22 +183,12 @@ class _HomepageState extends State<Homepage> {
                     ),
                   ),
                   const Divider(),
-                  Flex(direction: Axis.horizontal, children: [
-                    Expanded(
-                        child:
-                            Text("${highestMangnitude["properties"]["mag"]}")),
-                    Expanded(
-                      child: Text(
-                        nearestEarthquake != null &&
-                                nearestEarthquake["properties"] != null
-                            ? "${nearestEarthquake["properties"]["mag"]}"
-                            : "Location disabled",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    )
-                  ]),
+                  if (highestMagnitude != null)
+                    EarthquakeCard(earthquake: [highestMagnitude]),
                   const Divider(),
-                  Expanded(child: EarthquakeCard(earthquake: earthquakes)),
+                  Expanded(
+                    child: EarthquakeCard(earthquake: earthquakes),
+                  ),
                 ],
               );
             }
