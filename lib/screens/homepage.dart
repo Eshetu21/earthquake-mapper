@@ -183,8 +183,7 @@ class _HomepageState extends State<Homepage> {
                       ],
                     ),
                   ),
-                  const Divider(),
-                 Column(
+                  Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,6 +233,7 @@ class _HomepageState extends State<Homepage> {
                       ),
                     ],
                   ),
+                  Divider(),
                   Expanded(
                     child: EarthquakeCard(earthquake: earthquakes),
                   ),
