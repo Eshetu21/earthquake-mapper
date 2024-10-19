@@ -35,14 +35,17 @@ class _EarthquakeCardState extends State<EarthquakeCard> {
         return GestureDetector(
           onTap: () {
             Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => EarthquakeDetail(earthquake: earthquakelocation, eqproperty: earthquake)));
+                builder: (context) => EarthquakeDetail(
+                    earthquake: earthquakelocation, eqproperty: earthquake)));
           },
           child: Card(
             color: appcolors.background,
             child: ListTile(
               title: Row(
                 children: [
-                  Text(earthquake['place']),
+                  Flexible(
+                      child: Text(earthquake['place'],
+                          overflow: TextOverflow.clip)),
                 ],
               ),
               subtitle: Column(

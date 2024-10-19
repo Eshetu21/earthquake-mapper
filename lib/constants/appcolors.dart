@@ -15,3 +15,4 @@ final Color audioBlueBackground = Color(0xFFeeeffa);
 final Color audioBGreyBackground = Color(0xFFf2f2f2);
 final Color greenColor = Color(0xFF438187);
 final Color secondaryColor = Color(0xFFFED408);
+const highlightColor = Color(0xFF4CAF50); 

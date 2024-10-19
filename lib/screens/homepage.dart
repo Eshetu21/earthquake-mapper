@@ -1,5 +1,6 @@
 import 'package:earthquake_map/controllers/location_controller.dart';
 import 'package:earthquake_map/screens/earthquake_card.dart';
+import 'package:earthquake_map/screens/earthquake_card2.dart';
 import 'package:earthquake_map/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:earthquake_map/constants/appcolors.dart' as appcolors;
@@ -183,9 +184,56 @@ class _HomepageState extends State<Homepage> {
                     ),
                   ),
                   const Divider(),
-                  if (highestMagnitude != null)
-                    EarthquakeCard(earthquake: [highestMagnitude]),
-                  const Divider(),
+                 Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (highestMagnitude != null)
+                            Expanded(
+                              child: Card(
+                                color: appcolors.audioBGreyBackground,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Most Significant $selectedFilter",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    EarthquakeCard2(
+                                        earthquake: highestMagnitude),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          if (nearestEarthquake != null)
+                            Expanded(
+                              child: Card(
+                                color: appcolors.audioBlueBackground,
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      "Nearest to you",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    EarthquakeCard2(
+                                        earthquake: nearestEarthquake),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                   Expanded(
                     child: EarthquakeCard(earthquake: earthquakes),
                   ),
