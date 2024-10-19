@@ -6,5 +6,5 @@ Earthquake Mapper is a Flutter application designed to visualize recent earthqua
 
 Here are some screenshots of the Earthquake Mapper app:
 
-![Screenshot 1](assets/screenshots/screenshot1.png)
-![Screenshot 2](assets/screenshots/screenshot2.png)
+![Screenshot 1](assets/screenshots/screenshot1.jpg)
+![Screenshot 2](assets/screenshots/screenshot2.jpg)
