@@ -176,6 +176,7 @@ class _HomepageState extends State<Homepage> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(earthquakes.length.toString(),
+                            overflow: TextOverflow.visible,
                             style: TextStyle(
                                 fontSize:
                                     MediaQuery.of(context).size.height * 0.08)),
